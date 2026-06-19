@@ -10,6 +10,25 @@ services: # Define  los servicios que componen la aplicación
     volumes:
       - ./app:/code/app # monta el directorio local "app" en el contenedor en la ruta "/code/app", lo que permite que los cambios realizados en el código local se reflejen en el contenedor
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload # Comando para iniciar la aplicación FastAPI utilizando Uvicorn, especificando el host, puerto y habilitando el modo de recarga automática
+    env_file:
+      - .env # se agrega un archivo de entorno para definir variables de entorno que se utilizarán en el contenedor
+    depends_on:
+      - db  
     environment: 
       - PYTHONDONTWRITEBYTECODE=1 # Previene que Python escriba archivos .pyc, lo que puede ser útil para evitar problemas de permisos y reducir el uso de espacio en disco
       - PYTHONUNBUFFERED=1 # Hace que la salida de Python se imprima directamente en la consola sin buffering, lo que es útil para ver los logs en tiempo real
+  # 2. El nuevo servicio de la Base de Datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

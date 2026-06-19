@@ -1,3 +1,4 @@
+# Pasos inicio de proyecto
 0 - Tener Docker instalado, python para la sintaxis.
 1 - Crear la carpeta del proyecto
 2 - iniciar el proyecto con git en raiz
@@ -22,3 +23,20 @@
     deactivate
 13 -Revisamos el servicio:
     http://localhost:8000/
+
+Pasos primer crud en postgresql y fastapi
+1 - Crear nuestro archivo .env
+2 - agregamos las nuevas librerias
+    sqlalchemy>=2.0.0
+    psycopg2-binary>=2.9.0
+    python-dotenv>=1.0.0
+
+    sqlalchemy (El ORM para mapear tus tablas de Python a SQL).
+    psycopg2-binary (El conector/driver que permite a Python hablar con PostgreSQL).
+    python-dotenv (Para leer las variables de entorno).
+3 - instalamos para evitar errores de codigo
+    pip install sqlalchemy psycopg2-binary python-dotenv
+4 - agregamos datos a nuestro archivo .env de conexion.
+5 - Modificamos nuestro docker composer para agregar la aplicacion de postgresql con sus configuraciones,
+     ademas se meter un volumen para no eliminar lso datos y la restriccion de no iniciar el servicio web si no esta la bd lista
+6 - 
