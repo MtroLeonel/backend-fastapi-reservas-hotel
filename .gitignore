@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+
+# Environment variables
+.env
+
+# Virtual environments
+venv/
+.venv/
+venv311/
+.vent311/
+
+# FastAPI / Uvicorn
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local storage and model artifacts
+storage/model/*.pth
+storage/models/*.pth
+storage/**/*.pth
+
+
+
+# Editor files
+.vscode/
+.idea/

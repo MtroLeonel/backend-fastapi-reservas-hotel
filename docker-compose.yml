@@ -1,0 +1,15 @@
+# Docker Compose configuracion archivo para definir y ejecutar aplicaciones Docker de múltiples contenedores. 
+# En este caso, se define un servicio para una aplicación FastAPI.
+version: '3.8' # Define la versión de Docker Compose que se está utilizando
+
+services: # Define  los servicios que componen la aplicación
+  web: # Nombre del servicio, en este caso "web"
+    build: . # construye la imagen de Docker utilizando el Dockerfile ubicado en el directorio actual
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/code/app # monta el directorio local "app" en el contenedor en la ruta "/code/app", lo que permite que los cambios realizados en el código local se reflejen en el contenedor
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload # Comando para iniciar la aplicación FastAPI utilizando Uvicorn, especificando el host, puerto y habilitando el modo de recarga automática
+    environment: 
+      - PYTHONDONTWRITEBYTECODE=1 # Previene que Python escriba archivos .pyc, lo que puede ser útil para evitar problemas de permisos y reducir el uso de espacio en disco
+      - PYTHONUNBUFFERED=1 # Hace que la salida de Python se imprima directamente en la consola sin buffering, lo que es útil para ver los logs en tiempo real

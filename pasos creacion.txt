@@ -1,0 +1,24 @@
+0 - Tener Docker instalado, python para la sintaxis.
+1 - Crear la carpeta del proyecto
+2 - iniciar el proyecto con git en raiz
+    git init
+3 - Crear el entorno de trabajo virtual usando el comando si no se usa docker.
+    python -m venv .venv --without-pip
+4 - Indicarles que seleccionen el intérprete en VS Code:
+    Ctrl + Shift + P -> Python: Select Interpreter -> Elegir la carpeta .venv
+5 - Creamos un archivo .gitignore en raiz para no versionar archivos que no son codigo.
+6 - Crear el archivo requirements.txt
+    fastapi>=0.110.0
+    uvicorn>=0.28.0
+7 - Creamos nuestra carpeta app y dentro el main.py que ejecuta nuestro proyecto.
+8 - Creamos el para docker como dockerfile , este archivo le dice a Docker cómo construir el contenedor
+9 - Creamos el para docker docker-compose.yml , Este archivo te permite encender el proyecto fácilmente y conectar tu
+    carpeta local con el contenedor para que los cambios de código se apliquen en tiempo real.
+10 -Iniciamos la construccion de la imagen docker con :
+    docker-compose up --build
+11 -Entramos en nuestro proyecto e iniciar el .venv.
+    .venv\Scripts\activate.bat 
+12 -PAra desactivar usamos
+    deactivate
+13 -Revisamos el servicio:
+    http://localhost:8000/
