@@ -39,4 +39,12 @@ Pasos primer crud en postgresql y fastapi
 4 - agregamos datos a nuestro archivo .env de conexion.
 5 - Modificamos nuestro docker composer para agregar la aplicacion de postgresql con sus configuraciones,
      ademas se meter un volumen para no eliminar lso datos y la restriccion de no iniciar el servicio web si no esta la bd lista
-6 - 
+6 - Agregamos la clase database.py para las configuraciones
+7 - Agregamos la carepta hotels y las clases de models routes shcemas.
+8 - instalamos alembic despues de levantar nuestro servicio en docker.
+    docker compose exec web alembic init alembic
+9 - Aplicar las migraciones
+    docker compose exec web alembic upgrade head
+10 -Agregar una migracion cuando movemos modelos o agregamos uno y agregarlos a alembic.
+    from app.bookings.models import Booking  en alembic/env.py
+    docker compose exec web alembic revision --autogenerate -m "Initial tables creation"
