@@ -1,0 +1,92 @@
+Apuntes de Git
+
+//Inicio Proyecto
+
+git init
+
+///ASignar usuario para poder identificar los commits
+
+git config user.name "Carlos Leonel Espinosa Martinez"
+git config user.email "carlos.espinosamartinez@cesunbc.edu.mx"
+
+//Si ya se agino se puede cambiar con el commando de arriba y ejecutar para actualizer los commit lo siguiente:
+
+git rebase --root --exec "git commit --amend --no-edit --reset-author"
+
+
+Pasos a recorer con git
+git log --oneline
+
+git checkout e9a87fb
+
+python main.py
+
+git checkout main
+
+git checkout master
+
+//Cambiar de rama master a main
+
+git branch -m main
+
+//Ver ramas
+
+git branch
+
+//Agregar rama remote
+
+git remote add origin https://github.com/MtroLeonel/backend-fastapi-reservas-hotel.git
+
+//Ver rama remota
+
+git remote -v
+
+// Bajar cambios de repositoro remote
+
+git pull origin main --allow-unrelated-histories
+
+//Hacer merge en consola preciona Esc + :wq
+
+
+//Envía la rama al remote
+
+git push -u origin main
+
+//Tips
+
+Agregar commit
+git commit -m "Agregar formulario de login"
+git commit -m "Validación de correo en backend"
+git commit -m "Corrección de bug en autenticación"
+
+Puedes usar algo como Conventional Commits:
+
+feat: nueva funcionalidad
+fix: corrección de errores
+refactor: mejoras internas sin cambiar funcionalidad
+docs: documentación
+test: pruebas
+chore: tareas generals
+
+git commit -m "feat: agregar módulo de usuarios"
+git commit -m "fix: corregir error en login"
+git commit -m "refactor: simplificar lógica de autenticación"
+
+//Usa ramas para cada funcionalidad
+git checkout -b feature/login
+
+//Terminando
+git checkout main
+
+//Realizar merge
+git merge feature/login
+
+
+//EStatus de commits
+git status
+
+//Diferencias
+git diff
+
+//Eliminar rama una vez terminado de usar
+git branch -d feature/login
