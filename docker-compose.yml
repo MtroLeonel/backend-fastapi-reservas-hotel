@@ -1,23 +1,5 @@
-# Docker Compose configuracion archivo para definir y ejecutar aplicaciones Docker de múltiples contenedores. 
-# En este caso, se define un servicio para una aplicación FastAPI.
-
-services: # Define los servicios que componen la aplicación
-  web: # Nombre del servicio, en este caso "web"
-    build: . # construye la imagen de Docker utilizando el Dockerfile ubicado en el directorio actual
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/code #  Mapea toda la raíz para que Alembic se sincronice con tu Windows
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload # Comando para iniciar la aplicación FastAPI utilizando Uvicorn, especificando el host, puerto y habilitando el modo de recarga automática
-    env_file:
-      - .env # se agrega un archivo de entorno para definir variables de entorno que se utilizarán en el contenedor
-    depends_on:
-      - db  
-    environment: 
-      - PYTHONDONTWRITEBYTECODE=1 # Previene que Python escriba archivos .pyc, lo que puede ser útil para evitar problemas de permisos y reducir el uso de espacio en disco
-      - PYTHONUNBUFFERED=1 # Hace que la salida de Python se imprima directamente en la consola sin buffering, lo que es útil para ver los logs en tiempo real
-
-  # 2. El nuevo servicio de la Base de Datos PostgreSQL
+services:
+  # 1. El servicio de la Base de Datos PostgreSQL
   db:
     image: postgres:15-alpine
     restart: always
@@ -29,6 +11,31 @@ services: # Define los servicios que componen la aplicación
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # IMPORTANTE: Esto le avisa a Docker cuándo Postgres terminó de arrancar
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. El servicio de FastAPI
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    # MODIFICADO: Espera a que la BD esté sana (healthy) antes de arrancar
+    depends_on:
+      db:
+        condition: service_healthy
+    # MODIFICADO: Primero corre Alembic, si pasa, levanta Uvicorn
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    env_file:
+      - .env
+    environment: 
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
 
 volumes:
   postgres_data:
