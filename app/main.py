@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.errors import HotelAPIException
 from app.hotels.routes import router as hotels_router
+from app.rooms.routes import router as rooms_router
 
 load_dotenv()
 
@@ -46,6 +47,9 @@ def hotel_exception_handler(request: Request, exc: HotelAPIException): # Funció
 
 # Añadimos el router de hoteles a la aplicación
 app.include_router(hotels_router, prefix="/api/v1") # Registramos el router de hoteles con un prefijo común para todas las rutas relacionadas con hoteles, lo que ayuda a organizar la API y mantener una estructura clara
+
+# Añadimos el router de habitaciones a la aplicación
+app.include_router(rooms_router, prefix="/api/v1") # Registramos el router de habitaciones con un prefijo común para todas las rutas relacionadas con habitaciones, lo que ayuda a organizar la API y mantener una estructura clara
 
 # Definimos una ruta para la raíz del sitio web
 @app.get("/")

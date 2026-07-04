@@ -47,4 +47,28 @@ Pasos primer crud en postgresql y fastapi
     docker compose exec web alembic upgrade head
 10 -Agregar una migracion cuando movemos modelos o agregamos uno y agregarlos a alembic.
     from app.bookings.models import Booking  en alembic/env.py
-    docker compose exec web alembic revision --autogenerate -m "Initial tables creation"
+    docker compose exec api alembic revision --autogenerate -m "Initial tables creation"
+--Para rooms 
+creamos la carpeta de rooms y generamos 3 archivos
+app/rooms/models.py
+app/rooms/schemas.py
+app/rooms/routes.py
+
+En app/hotels/models.py agrega la relación inversa:
+from sqlalchemy.orm import relationship
+rooms = relationship("Room", back_populates="hotel", cascade="all, delete-orphan")
+
+En app/main.py agrega:
+from app.rooms.routes import router as rooms_router
+app.include_router(rooms_router, prefix="/api/v1")
+
+En alembic/env.py
+from app.rooms.models import Room
+
+generamos las migracioes:
+docker compose exec api alembic revision --autogenerate -m "create rooms table"
+docker compose exec api alembic upgrade head
+
+antes de ejecutar las migraciones debemos tener ejecutando nuestro contenedor
+docker-compose up --build
+
