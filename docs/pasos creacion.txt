@@ -48,6 +48,8 @@ Pasos primer crud en postgresql y fastapi
 10 -Agregar una migracion cuando movemos modelos o agregamos uno y agregarlos a alembic.
     from app.bookings.models import Booking  en alembic/env.py
     docker compose exec api alembic revision --autogenerate -m "Initial tables creation"
+
+    
 --Para rooms 
 creamos la carpeta de rooms y generamos 3 archivos
 app/rooms/models.py
