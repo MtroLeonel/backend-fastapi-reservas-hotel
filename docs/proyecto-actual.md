@@ -2,9 +2,13 @@
 
 ## Objetivo actual
 
-El repositorio implementa una API backend inicial para administrar hoteles. En este momento el dominio funcional real se limita al modulo `hotels`, con operaciones CRUD, validaciones basicas de negocio, persistencia relacional y soporte de migraciones.
+El repositorio implementa una API backend para gestion hotelera con tres modulos funcionales activos:
 
-No se documenta aqui una arquitectura futura ideal ni modulos planeados. Este documento refleja exclusivamente lo que existe hoy en el codigo.
+- `hotels`
+- `rooms`
+- `bookings`
+
+El documento describe exclusivamente lo implementado hoy en codigo.
 
 ## Resumen tecnico
 
@@ -20,35 +24,33 @@ No se documenta aqui una arquitectura futura ideal ni modulos planeados. Este do
 
 ### 1. Punto de entrada de la aplicacion
 
-El archivo `app/main.py` crea la instancia principal de FastAPI y centraliza estas responsabilidades:
+`app/main.py` centraliza:
 
-- Carga de variables de entorno.
-- Configuracion dinamica de `title`, `debug` y exposicion de documentacion OpenAPI.
-- Registro del manejador global para excepciones de dominio.
-- Inclusion del router de hoteles bajo el prefijo `/api/v1`.
-- Definicion de un endpoint raiz de verificacion basica.
+- carga de variables de entorno,
+- configuracion dinamica de `title`, `debug` y documentacion OpenAPI,
+- registro del manejador global de excepciones,
+- inclusion de routers bajo el prefijo `/api/v1` para hoteles, habitaciones y reservas,
+- endpoint raiz de verificacion basica.
 
 ### 2. Capa de acceso a datos
 
-El archivo `app/database.py` define:
+`app/database.py` define:
 
-- `engine` de SQLAlchemy usando `DATABASE_URL`.
-- `SessionLocal` para crear sesiones transaccionales.
-- `Base` como clase declarativa para los modelos.
-- `get_db()` como dependencia de FastAPI para abrir y cerrar sesiones por request.
-
-El proyecto depende de que `DATABASE_URL` exista y apunte a PostgreSQL.
+- `engine` usando `DATABASE_URL`,
+- `SessionLocal` para sesiones transaccionales,
+- `Base` como clase declarativa,
+- `get_db()` como dependencia por request.
 
 ### 3. Manejo de errores
 
-El archivo `app/errors.py` implementa una jerarquia de excepciones propia:
+`app/errors.py` implementa:
 
 - `HotelAPIException`
 - `ResourceNotFoundException`
 - `DuplicateHotelException`
 - `BadRequestException`
 
-Estas excepciones son capturadas por un exception handler global que devuelve respuestas JSON con esta estructura:
+El handler global responde en formato JSON consistente:
 
 ```json
 {
@@ -57,34 +59,17 @@ Estas excepciones son capturadas por un exception handler global que devuelve re
 }
 ```
 
-Esto permite desacoplar la logica del dominio de la construccion manual de respuestas HTTP en cada endpoint.
-
 ### 4. Modulo hotels
 
-El modulo `app/hotels/` contiene la implementacion funcional principal del sistema.
+`app/hotels/` contiene CRUD completo de hoteles.
 
-#### Modelo
+Modelo `Hotel`:
 
-`models.py` define la entidad `Hotel` con la tabla `hotels`:
+- `id` (PK)
+- `name` (unico, indexado)
+- `city` (indexado)
 
-- `id`: entero, clave primaria.
-- `name`: string, unico e indexado.
-- `city`: string, indexado.
-
-#### Esquemas
-
-`schemas.py` define los contratos de entrada y salida:
-
-- `HotelBase`
-- `HotelCreate`
-- `HotelUpdate`
-- `HotelResponse`
-
-`HotelResponse` habilita `from_attributes`, por lo que puede serializar instancias ORM directamente.
-
-#### Rutas y comportamiento
-
-`routes.py` define un `APIRouter` con prefijo `/hotels` y etiqueta `Hotels`. Al incluirse desde `main.py` bajo `/api/v1`, la superficie HTTP efectiva es:
+Rutas activas:
 
 - `POST /api/v1/hotels/`
 - `GET /api/v1/hotels/`
@@ -93,61 +78,112 @@ El modulo `app/hotels/` contiene la implementacion funcional principal del siste
 - `PATCH /api/v1/hotels/{hotel_id}`
 - `DELETE /api/v1/hotels/{hotel_id}`
 
-La implementacion actual incluye funciones auxiliares privadas para:
+### 5. Modulo rooms
 
-- buscar hoteles por id,
-- validar unicidad del nombre,
-- validar strings vacios o con espacios.
+`app/rooms/` contiene CRUD completo de habitaciones.
+
+Modelo `Room`:
+
+- `id` (PK)
+- `number`
+- `room_type`
+- `capacity`
+- `price`
+- `is_available`
+- `hotel_id` (FK a `hotels.id`, `ondelete=CASCADE`)
+
+Rutas activas:
+
+- `POST /api/v1/rooms/`
+- `GET /api/v1/rooms/`
+- `GET /api/v1/rooms/{room_id}`
+- `PUT /api/v1/rooms/{room_id}`
+- `PATCH /api/v1/rooms/{room_id}`
+- `DELETE /api/v1/rooms/{room_id}`
+
+### 6. Modulo bookings
+
+`app/bookings/` contiene CRUD completo de reservas.
+
+Modelo `Booking`:
+
+- `id` (PK)
+- `booking_code` (unico, indexado)
+- `guest_name`
+- `guest_email` (indexado)
+- `check_in` (Date)
+- `check_out` (Date)
+- `total_price` (calculado por backend)
+- `status` (String con valores permitidos por validacion de aplicacion)
+- `room_id` (FK a `rooms.id`, `ondelete=CASCADE`)
+
+Estados permitidos para reservas:
+
+- `confirmed`
+- `checked_in`
+- `checked_out`
+- `cancelled`
+- `no_show`
+
+Rutas activas:
+
+- `POST /api/v1/bookings/`
+- `GET /api/v1/bookings/`
+- `GET /api/v1/bookings/{booking_id}`
+- `PUT /api/v1/bookings/{booking_id}`
+- `PATCH /api/v1/bookings/{booking_id}`
+- `DELETE /api/v1/bookings/{booking_id}`
 
 ## Reglas de negocio implementadas
 
-Las reglas activas hoy son estas:
+Hoteles:
 
-- un hotel debe tener `name` y `city` con contenido util,
-- el nombre del hotel no puede repetirse,
-- las actualizaciones parciales solo modifican los campos enviados,
-- las busquedas por id responden con error de dominio si el registro no existe,
-- el listado puede filtrarse por ciudad usando coincidencia `ILIKE`.
+- nombre unico,
+- `name` y `city` obligatorios,
+- filtro por ciudad en listado.
+
+Habitaciones:
+
+- `number` y `room_type` obligatorios,
+- `capacity > 0`,
+- `price >= 0`,
+- no se repite `number` dentro del mismo hotel.
+
+Reservas:
+
+- `booking_code` se genera automaticamente,
+- no hay solapamiento de fechas en la misma habitacion para reservas activas,
+- `status` restringido por validacion de aplicacion a 5 valores,
+- `total_price` se calcula automaticamente con:
+  - `noches = (check_out - check_in).days`
+  - `total_price = noches * room.price`
 
 ## Persistencia y migraciones
 
-El proyecto ya cuenta con una migracion inicial en Alembic:
+Versiones de esquema registradas:
 
-- crea la tabla `hotels`,
-- crea indices para `id`, `city` y `name`,
-- marca `name` como unico.
-
-Esto indica que el esquema ya se encuentra versionado desde el inicio del proyecto, aunque por ahora solo cubre una entidad.
+- `f853a3f688a5_initial_tables_creation.py` crea `hotels`.
+- `ebad12904087_create_rooms_table.py` crea `rooms` y FK a `hotels`.
+- `7a560d25d820_create_bookings_table.py` crea `bookings` y FK a `rooms`.
 
 ## Ejecucion en contenedores
 
-### Dockerfile
+`Dockerfile`:
 
-El `Dockerfile` actual:
+- base `python:3.11-slim`,
+- instala dependencias,
+- copia codigo,
+- ejecuta Uvicorn en `8000`.
 
-- parte de `python:3.11-slim`,
-- instala dependencias desde `requirements.txt`,
-- copia la carpeta `app/`,
-- arranca Uvicorn en el puerto `8000`.
+`docker-compose.yml`:
 
-### docker-compose.yml
-
-El archivo de Compose levanta dos servicios:
-
-- `web`: aplicacion FastAPI.
-- `db`: PostgreSQL 15 Alpine.
-
-Tambien:
-
-- publica el puerto `8000` para la API,
-- publica el puerto `5432` para PostgreSQL,
-- monta el repositorio dentro del contenedor `web`,
-- inyecta variables desde `.env`,
-- usa `--reload` para desarrollo.
+- servicio `web` (FastAPI),
+- servicio `db` (PostgreSQL 15 Alpine),
+- puertos `8000` y `5432`,
+- carga variables desde `.env`,
+- modo desarrollo con `--reload`.
 
 ## Variables de entorno observadas en el codigo
-
-Las variables referenciadas directamente por el proyecto son:
 
 - `DATABASE_URL`
 - `APP_ENV`
@@ -158,30 +194,6 @@ Las variables referenciadas directamente por el proyecto son:
 - `POSTGRES_PASSWORD`
 - `POSTGRES_DB`
 
-## Alcance real del repositorio hoy
+## Alcance actual
 
-Actualmente el proyecto contiene una base tecnica valida para crecer, pero el alcance funcional implementado sigue siendo acotado. No se observan aun:
-
-- autenticacion o autorizacion,
-- pruebas automatizadas,
-- separacion por capas de servicio o repositorio,
-- multiples modulos de negocio,
-- observabilidad avanzada,
-- pipeline CI/CD,
-- versionado adicional de la API mas alla del prefijo actual,
-- modelos relacionales adicionales como habitaciones, reservas o usuarios.
-
-## Valor de esta base actual
-
-Aunque el alcance es pequeno, la base ya incorpora varios elementos utiles para escalar:
-
-- estructura modular inicial,
-- convenciones CRUD consistentes,
-- manejo centralizado de errores,
-- migraciones desde etapas tempranas,
-- contenedorizacion para entorno local,
-- configuracion desacoplada por entorno.
-
-## Conclusion
-
-Hoy el proyecto es una API inicial de gestion de hoteles, no una plataforma hotelera completa. Su contenido actual es suficiente para servir como base de aprendizaje, evolucion tecnica incremental y futura incorporacion de nuevos modulos, pero la documentacion debe entenderse en ese alcance acotado.
+El proyecto ya cubre el flujo principal de inventario y reserva (hotel -> habitacion -> reserva) con reglas de negocio base. Aun no incorpora autenticacion, pruebas automatizadas ni pipeline CI/CD.

@@ -74,3 +74,47 @@ docker compose exec api alembic upgrade head
 antes de ejecutar las migraciones debemos tener ejecutando nuestro contenedor
 docker-compose up --build
 
+Integracion de bookings reservaciones
+CReacion de archivos models, routes, schemas
+app/bookings/models.py
+app/bookings/schemas.py
+app/bookings/routes.py
+
+Relaciones
+Booking -> Room: relationship con back_populates
+Room -> Booking: agrega en models.py una relación bookings con cascade all, delete-orphan
+
+Validaciones mínimas:
+check_out debe ser mayor que check_in
+total_price no negativo
+guest_name no vacío
+
+helper para buscar reserva por id
+helper para buscar room por id
+helper de validación de fechas
+helper de validación de solapamiento
+Regla clave de solapamiento:
+
+no permitir nueva reserva si existe otra confirmada de la misma habitación que cruce fechas
+condición típica: existe solape si NO se cumple (existente.check_out <= nueva.check_in o existente.check_in >= nueva.check_out)
+
+Registrar router en main
+Habilitar autogenerate de Alembic
+En env.py: from app.bookings.models import Booking
+
+Patrón recomendado para generar código reserva
+Usa prefijo + fecha + token corto aleatorio, y deja la base como autoridad final con unique constraint.
+Generación automática del código con formato tipo RSV-YYYYMMDD-XXXXXX.
+
+Comandos para generar y aplicar migración en consola:
+
+cd c:\developer\backend-fastapi-reservas-hotel
+alembic revision --autogenerate -m "create bookings table"
+alembic upgrade head
+
+
+Docker 
+
+docker compose up -d
+docker compose exec api alembic revision --autogenerate -m "create bookings table"
+docker compose exec api alembic upgrade head

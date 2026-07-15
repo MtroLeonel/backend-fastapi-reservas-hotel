@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.errors import HotelAPIException
+from app.bookings.routes import router as bookings_router
 from app.hotels.routes import router as hotels_router
 from app.rooms.routes import router as rooms_router
 
@@ -50,6 +51,9 @@ app.include_router(hotels_router, prefix="/api/v1") # Registramos el router de h
 
 # Añadimos el router de habitaciones a la aplicación
 app.include_router(rooms_router, prefix="/api/v1") # Registramos el router de habitaciones con un prefijo común para todas las rutas relacionadas con habitaciones, lo que ayuda a organizar la API y mantener una estructura clara
+
+# Añadimos el router de reservas a la aplicación
+app.include_router(bookings_router, prefix="/api/v1")
 
 # Definimos una ruta para la raíz del sitio web
 @app.get("/")

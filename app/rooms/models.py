@@ -18,3 +18,4 @@ class Room(Base):
     hotel_id = Column(Integer, ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False, index=True)
 
     hotel = relationship("Hotel", back_populates="rooms")
+    bookings = relationship("Booking", back_populates="room", cascade="all, delete-orphan")
